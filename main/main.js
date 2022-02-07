@@ -14,12 +14,15 @@ search.onkeyup = async (event) => {
         header.textContent = `Sura: ${sura.data.name.transliteration.en}`
         p.textContent = sura.data.verses.length + " ayat"
 
-
         for(let i of sura.data.verses) {
             const li = makeLi()
-            console.log(i);
             li.textContent = i.text.arab
             res.append(li)
+
+            li.addEventListener("click", () => {
+                const audio = new Audio(i.audio.primary)
+                audio.play()
+            })
         }
 
         search.value = null
