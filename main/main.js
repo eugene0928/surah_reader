@@ -34,6 +34,29 @@ async function renderAyats(surahNumber) {
     }
 }
 
+function readAllAudios() {
+    stopAllAudios()
+    const audios = document.querySelectorAll("audio")
+    
+    let index = 0
+        
+    const audio = document.createElement("audio")
+    audio.src = audios[index].currentSrc
+    audio.play()
+
+    audio.onended = () => {
+        // to stop recursion
+        if(index == audios.length - 1) return 
+
+        ++index;
+        audio.src = audios[index].currentSrc
+        audio.play()
+    }
+
+    // add audio to wrapper to stop audio when needed
+    wrapper.append(audio)
+    
+}
 
 function stopAllAudios() {
     const audios = document.querySelectorAll("audio")
@@ -47,5 +70,23 @@ search.onkeyup = (event) => {
     if(event.keyCode == 13 && typeof (+search.value) == 'number' && +search.value <= 114 && +search.value >= 1) {
         
         renderAyats(search.value)
+        search.value = null
+    }
+}
+
+read.onclick = () => {
+    if(typeof (+search.value) == 'number' && +search.value <= 114 && +search.value >= 1 && search.value) {
+        renderAyats(search.value)
+        readAllAudios()
+
+        search.value = null
+        return
+    }
+    if(document.querySelectorAll("li").length) {
+
+        // remove previous audio
+        wrapper.innerHTML = null
+        
+        readAllAudios()
     }
 }
