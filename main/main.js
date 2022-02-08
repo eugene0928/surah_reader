@@ -5,96 +5,47 @@ const header = document.querySelector("#heder")
 const search = document.querySelector("#search")
 const wrapper = document.querySelector("#wrapper")
 
-let input = null
-let i = -1, sounds, sura
+const api = "https://api.quran.sutanlab.id/surah/"
 
-search.onkeyup = async (event) => {
-    if(event.keyCode == 13 && +search.value == search.value && +search.value >= 1 && +search.value <= 114) {
-        let data = await fetch(`https://api.quran.sutanlab.id/surah/${search.value}`)
-        sura = await data.json()
+async function renderAyats(surahNumber) {
+    const data = await fetch(api + surahNumber)
+    const surah = await data.json()
 
-        // get all audios
-        sounds = sura.data.verses.map(el => {return new Audio(el.audio.primary)})
+    const surahName = surah.data.name.transliteration.en
+    const ayatNumber = surah.data.numberOfVerses
 
-        header.textContent = `Surah: ${sura.data.name.transliteration.en}`
-        p.textContent = sura.data.verses.length + " ayat"
+    header.textContent = "Surah: " + surahName
+    num.textContent = "ayat: " + ayatNumber
 
+    for(let verse of surah.data.verses) {
+        const li = document.createElement("li")
+        li.textContent = verse.text.arab
 
-        for(let i of sura.data.verses) {
-            const { li, audio } = makeLi()
-            li.textContent = i.text.arab
+        const audio = document.createElement("audio")
+        audio.src = verse.audio.primary
 
-            let source = document.createElement("source")
-            source.src = i.audio.primary
+        li.append(audio)
+        res.append(li)
 
-            audio.append(source)
-            res.append(li)
-           
-            
-            li.addEventListener("click",  function (){
-                stopAudio()
-                wrapper.innerHTML = null
-                appendDiv(audio)
-                audio.play()
-            })
+        li.onclick = () => {
+            stopAllAudios()
+            audio.play()
         }
-        input = search.value
-        search.value = null
-        stopAudio()
     }
-
 }
 
 
-read.addEventListener("click", async function (){
-    if(input) {
-        playAll()
+function stopAllAudios() {
+    const audios = document.querySelectorAll("audio")
+    for(let audio of audios) {
+        audio.pause()
+        audio.currentTime = 0
     }
-})
-
-
-function makeLi() {
-    let li = document.createElement("li")
-    let audio = document.createElement("audio")
-    return { li, audio }
 }
 
-function appendDiv( tag ) {
-    wrapper.append(tag)
-}
-
-function playSound() {
-    stop()
-	
-	for(let el of sura.data.verses){
-		wrapper.innerHTML=null
-
-		let audio = document.createElement('audio')
-		audio.controls = false
-    	let source = document.createElement('source')
-    	source.src = el.audio.primary
+search.onkeyup = (event) => {
+    if(event.keyCode == 13 && typeof (+search.value) == 'number' && +search.value <= 114 && +search.value >= 1) {
         
-    	audio.append(source)
-    	wrapper.append(audio)
-	}
- 	playAll()
-}
-
-function playAll() {
-    i++;
-    if (i >= wrapper.length){
-        i=-1;
-    	return;
-    }
-    sounds[i].addEventListener('ended', playAll);
-    sounds[i].play();
-    wrapper.innerHTML=null
-}
-
-function stopAudio() {
-    if(i != -1) {
-        sounds[i].pause()
-        sounds[i].currentTime = 0
-        i = -1
+        renderAyats(search.value)
     }
 }
